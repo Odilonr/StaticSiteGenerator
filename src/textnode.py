@@ -11,7 +11,7 @@ block_type_quote = "quote"
 block_type_unorded_list = "unorded_list"
 block_type_ordered_list = "ordered_list"
 
-from htmlnode import LeafNode
+from htmlnode import LeafNode,  HTMLNode,   ParentNode
 import re
 
 class TextNode:
@@ -202,7 +202,6 @@ def block_to_block_type(block):
     unordered_list = True
     for line in block_list:
         if not (line.startswith('* ') or line.startswith('- ')):
-            ##print(line)
             unordered_list = False
             break
     if unordered_list:
@@ -216,7 +215,92 @@ def block_to_block_type(block):
         return block_type_ordered_list
     
     return block_type_paragraph
+
+def add_children(block):
+    children = []
+    text_nodes = text_to_texnode(block)
+    for text_node in text_nodes:
+        children.append(text_node_to_html_node(text_node))
+    return children
+
+def block_to_html_node_paragraph(block):
+    return ParentNode(tag="p",children = add_children(block))
+
+def block_to_html_node_blockquote(block):
+    return ParentNode(tag="blockquote",children=add_children(block))
+
+def block_to_html_node_heading(block):
+    if bool(re.match(r"(#)\s(?!\s)(.+)", block)):
+        return ParentNode(tag="h1",children=add_children(block.replace("# ","",1)))
     
+    if bool(re.match(r"(##)\s(?!\s)(.+)", block)):
+        return ParentNode(tag="h2",children=add_children(block.replace("## ","",1)))
+    
+    if bool(re.match(r"(###)\s(?!\s)(.+)", block)):
+        block = re.sub(r"(###)\s(?!\s)", "", block)
+        return ParentNode(tag="h3",children=add_children(block.replace("### ","",1)))
+    
+    if bool(re.match(r"(####)\s(?!\s)(.+)", block)):
+        block = re.sub(r"(####)\s(?!\s)", "", block)
+        return ParentNode(tag="h4",children=add_children(block.replace("#### ","",1)))
+    
+    if bool(re.match(r"(#####)\s(?!\s)(.+)", block)):
+        block = re.sub(r"(#####)\s(?!\s)", "", block)
+        return ParentNode(tag="h5",children=add_children(block.replace("##### ","",1)))
+    
+    if bool(re.match(r"(######)\s(?!\s)(.+)", block)):
+        block = re.sub(r"(######)\s(?!\s)(.+)", "", block)
+        return ParentNode(tag="h6",children=add_children(block.replace("###### ","",1)))
+    
+
+def block_to_html_node_code(block):
+    node = ParentNode(tag="code",children=add_children(block))
+    return ParentNode(tag="pre", children=[node])
+
+def block_to_html_node_ordered_list(block):
+    items = block.split('\n')
+    children = []
+    for i, item in enumerate(items):
+        item = item.replace(f"{i+1}. ","")
+        children.append(ParentNode(tag="li",children=add_children(item)))
+    return ParentNode(tag ="ol", children=children)
+
+def block_to_html_node_unordered_list(block):
+    items = block.split("\n")
+    children = []
+    for item in items:
+        if item.startswith('* '):
+            item = item.replace(f"* ", "")
+            children.append(ParentNode(tag="li",children=add_children(item)))
+        else:
+            item = item.replace(f"- ", "")
+            children.append(ParentNode(tag="li", children=add_children(item)))
+    return ParentNode(tag="ul",children=children)
+      
+    
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    children = []
+
+    for block in blocks:
+        type_of_block = block_to_block_type(block)
+
+        if type_of_block == block_type_paragraph:
+            children.append(block_to_html_node_paragraph(block))
+        if type_of_block == block_type_quote:
+            children.append(block_to_html_node_blockquote(block))
+        if type_of_block == block_type_heading:
+            children.append(block_to_html_node_heading(block))
+        if type_of_block == block_type_code:
+            children.append(block_to_html_node_code(block))
+        if type_of_block == block_type_ordered_list:
+            children.append(block_to_html_node_ordered_list(block))
+        if type_of_block == block_type_unorded_list:
+            children.append(block_to_html_node_unordered_list(block))
+        
+
+    return ParentNode(tag="div", children=children)
+
     
    
 

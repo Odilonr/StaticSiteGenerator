@@ -1,9 +1,12 @@
+# Text types constants
 text_type_text = "text"
 text_type_bold = "bold"
 text_type_italic = "italic"
 text_type_code = "code"
 text_type_link = "link"
 text_type_image = "image"
+
+# Block types constants
 block_type_paragraph = "paragraph"
 block_type_heading = "heading"
 block_type_code = "code"
@@ -15,6 +18,9 @@ from htmlnode import LeafNode,  HTMLNode,   ParentNode
 import re
 
 class TextNode:
+    """
+    Represents a text node with a specific type (e.g., bold, italic, code).
+    """
     def __init__(self, text, text_type, url=None):
         self.text = text
         self.text_type = text_type
@@ -44,7 +50,10 @@ def text_node_to_html_node(text_node):
 
 
 def split_nodes_delimiter(old_nodes, delimiter, tex_type):
-    ##check if there is no match delimiter in any of the nodes
+    """
+    Split nodes by a delimiter and assign a new text type to the split parts.
+    """
+    # Define regex patterns for delimiters
     if delimiter == '*':
         delimiter = r"(?<!\*)\*(?!\*)"
     elif delimiter == '`':
@@ -55,8 +64,8 @@ def split_nodes_delimiter(old_nodes, delimiter, tex_type):
         raise Exception('Invalid markdown Syntax')   
 
     nodes_split = []
+    # Split each old node by the delimiter and create new nodes with the appropriate text type
     for old_node in old_nodes:
-        
         if old_node.text_type != text_type_text:
             nodes_split.append(old_node)
             continue

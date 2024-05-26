@@ -6,7 +6,7 @@ import re
 
 def main():
    copy_directory_content('static','public')
-   generate_page('content/index.md', 'template.html', 'public/index.html')
+   generate_pages_recursive('content', 'template.html', 'public')
 
 
 def delete_folder_content(file_path):
@@ -56,6 +56,21 @@ def generate_page(from_path, template_path, dest_path):
    f = open(dest_path, 'w', encoding="utf-8")
    f.write(template_file)
    f.close()
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+   entries = os.listdir(dir_path_content)
+   for entry in entries:
+      if os.path.isfile(os.path.join(dir_path_content,entry)):
+         from_path = os.path.join(dir_path_content,entry)
+         dest_path = os.path.join(dest_dir_path, entry.replace('.md','.html'))
+         generate_page(from_path, template_path, dest_path)
+      else:
+         os.mkdir(os.path.join(dest_dir_path, entry))
+         generate_pages_recursive(os.path.join(dir_path_content,entry), template_path, os.path.join(dest_dir_path, entry))
+         
+
+
+
 
 
 

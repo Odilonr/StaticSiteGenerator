@@ -1,1 +1,1 @@
-Building a Static Site Generator
+Building a Static Site Generator from scratch in python
